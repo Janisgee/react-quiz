@@ -11,6 +11,7 @@ import Progress from './components/Progress';
 import FinishScreen from './components/FinishScreen';
 import Footer from './components/Footer';
 import Timer from './components/Timer';
+import { loadData } from './questions';
 
 const SEC_PER_QUESTION = 30;
 const previousHighScore = JSON.parse(localStorage.getItem('highScore'));
@@ -104,8 +105,7 @@ function App() {
   );
 
   useEffect(function () {
-    fetch('http://localhost:8000/questions')
-      .then((res) => res.json())
+    loadData()
       .then((data) => dispatch({ type: 'dataReceived', payload: data }))
       .catch((err) => dispatch({ type: 'dataFailed' }));
   }, []);
