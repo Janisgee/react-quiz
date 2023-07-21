@@ -13,6 +13,8 @@ import Footer from './components/Footer';
 import Timer from './components/Timer';
 
 const SEC_PER_QUESTION = 30;
+const previousHighScore = JSON.parse(localStorage.getItem('highScore'));
+console.log(previousHighScore);
 
 const initalState = {
   questions: [],
@@ -20,7 +22,7 @@ const initalState = {
   index: 0,
   answer: null,
   points: 0,
-  highScore: 0,
+  highScore: previousHighScore ? previousHighScore : 0,
   secondsRemaining: null,
 };
 
@@ -58,7 +60,12 @@ function reducer(state, action) {
           state.points > state.highScore ? state.points : state.highScore,
       };
     case 'restart':
-      return { ...initalState, status: 'ready', questions: state.questions };
+      return {
+        ...initalState,
+        status: 'ready',
+        questions: state.questions,
+        highScore: state.highScore,
+      };
     case 'tick':
       return {
         ...state,
@@ -87,6 +94,13 @@ function App() {
   const maxPossiblePoints = questions.reduce(
     (prevPoint, currentPoint) => prevPoint + currentPoint.points,
     0,
+  );
+
+  useEffect(
+    function () {
+      localStorage.setItem('highScore', JSON.stringify(highScore));
+    },
+    [highScore],
   );
 
   useEffect(function () {
