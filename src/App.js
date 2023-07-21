@@ -9,6 +9,10 @@ import Question from './components/Question';
 import NextButton from './components/NextButton';
 import Progress from './components/Progress';
 import FinishScreen from './components/FinishScreen';
+import Footer from './components/Footer';
+import Timer from './components/Timer';
+
+const SEC_PER_QUESTION = 30;
 
 const initalState = {
   questions: [],
@@ -17,19 +21,23 @@ const initalState = {
   answer: null,
   points: 0,
   highScore: 0,
+  secondsRemaining: null,
 };
 
 //status:'loading', 'error', 'ready','active','finish'
 
 function reducer(state, action) {
-  console.log(state, action);
   switch (action.type) {
     case 'dataReceived':
       return { ...state, status: 'ready', questions: action.payload };
     case 'dataFailed':
       return { ...state, status: 'error' };
     case 'start':
-      return { ...state, status: 'active' };
+      return {
+        ...state,
+        status: 'active',
+        secondsRemaining: state.questions.length * SEC_PER_QUESTION,
+      };
     case 'newAnswer':
       const question = state.questions.at(state.index);
       return {
@@ -51,6 +59,12 @@ function reducer(state, action) {
       };
     case 'restart':
       return { ...initalState, status: 'ready', questions: state.questions };
+    case 'tick':
+      return {
+        ...state,
+        secondsRemaining: state.secondsRemaining - 1,
+        status: state.secondsRemaining === 0 ? 'finished' : state.status,
+      };
     default:
       throw new Error('Unknown action');
   }
@@ -58,10 +72,17 @@ function reducer(state, action) {
 function App() {
   const [state, dispatch] = useReducer(reducer, initalState);
 
-  const { status, questions, index, answer, points, highScore } = state;
+  const {
+    status,
+    questions,
+    index,
+    answer,
+    points,
+    highScore,
+    secondsRemaining,
+  } = state;
 
   const numQuestions = questions.length;
-  console.log(numQuestions);
 
   const maxPossiblePoints = questions.reduce(
     (prevPoint, currentPoint) => prevPoint + currentPoint.points,
@@ -98,12 +119,15 @@ function App() {
               dispatch={dispatch}
               answer={answer}
             />
-            <NextButton
-              dispatch={dispatch}
-              answer={answer}
-              index={index}
-              numQuestions={numQuestions}
-            />
+            <Footer>
+              <Timer secondsRemaining={secondsRemaining} dispatch={dispatch} />
+              <NextButton
+                dispatch={dispatch}
+                answer={answer}
+                index={index}
+                numQuestions={numQuestions}
+              />
+            </Footer>
           </>
         )}
         {status === 'finished' && (
